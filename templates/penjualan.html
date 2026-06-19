@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">Daftar Jurnal Penjualan Kasir</h1>
+    <p class="text-sm text-slate-500">Kelola riwayat nota kasir dan lakukan pembaruan status pembayaran konsumen.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Omzet Penjualan Terbuku</span>
+        <div class="text-3xl font-bold text-slate-900 mt-1">{{ metrics.total_jual }}</div>
+    </div>
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jumlah Nota Terbit</span>
+        <div class="text-3xl font-bold text-slate-900 mt-1">{{ metrics.total_tx }} Transaksi</div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+    <h2 class="text-md font-bold text-slate-900 mb-4">🛒 Input Nota Kasir Baru</h2>
+    <form action="/penjualan/tambah" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <input type="text" name="no_faktur" placeholder="No Faktur (ex: PJN-001)" required class="px-3 py-2 border rounded-lg text-sm focus:border-blue-500 outline-none">
+        <input type="number" name="total_belanja" placeholder="Gross Total (Rp)" required class="px-3 py-2 border rounded-lg text-sm focus:border-blue-500 outline-none">
+        <input type="number" name="diskon" placeholder="Potongan Diskon (Rp)" required class="px-3 py-2 border rounded-lg text-sm focus:border-blue-500 outline-none">
+        <input type="number" name="jumlah_akhir" placeholder="Net Total Bayar (Rp)" required class="px-3 py-2 border rounded-lg text-sm focus:border-blue-500 outline-none">
+        <select name="status_pembayaran" class="px-3 py-2 border rounded-lg text-sm bg-white outline-none focus:border-blue-500">
+            <option value="Lunas">Lunas</option>
+            <option value="Pending">Pending</option>
+        </select>
+        <button type="submit" class="md:col-span-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors">Sahkan Penjualan</button>
+    </form>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-700 border-b border-slate-200">
+                <tr>
+                    <th class="px-6 py-4">No Faktur</th>
+                    <th class="px-6 py-4">Waktu Input</th>
+                    <th class="px-6 py-4">Gross</th>
+                    <th class="px-6 py-4">Diskon</th>
+                    <th class="px-6 py-4">Net Total</th>
+                    <th class="px-6 py-4">Status Pembayaran</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                {% if not penjualan %}
+                <tr>
+                    <td colspan="6" class="px-6 py-10 text-center text-slate-400 font-medium">Belum ada riwayat transaksi penjualan kasir di dalam database.</td>
+                </tr>
+                {% endif %}
+                
+                {% for item in penjualan %}
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-6 py-4 font-mono font-bold text-slate-900">{{ item.no_faktur }}</td>
+                    <td class="px-6 py-4 text-xs text-slate-500">{{ item.waktu }}</td>
+                    <td class="px-6 py-4">Rp {{ float(item.total_belanja)|int }}</td>
+                    <td class="px-6 py-4">Rp {{ float(item.diskon)|int }}</td>
+                    <td class="px-6 py-4 font-bold text-slate-900">Rp {{ float(item.jumlah_akhir)|int }}</td>
+                    
+                    <td class="px-6 py-4">
+                        <form action="/penjualan/update_status/{{ item.no_faktur }}" method="POST" class="flex items-center">
+                            <select name="status_pembayaran" onchange="this.form.submit()" class="text-xs font-bold rounded-md px-2.5 py-1.5 outline-none border cursor-pointer transition-colors
+                                {% if item.status_pembayaran == 'Lunas' %} bg-green-50 text-green-700 border-green-200 hover:bg-green-100 {% else %} bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 {% endif %}">
+                                <option value="Lunas" {% if item.status_pembayaran == 'Lunas' %}selected{% endif %}>Lunas</option>
+                                <option value="Pending" {% if item.status_pembayaran == 'Pending' %}selected{% endif %}>Pending</option>
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

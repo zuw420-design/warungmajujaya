@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">Laporan Akuntansi Laba Rugi Otomatis</h1>
+    <p class="text-sm text-slate-500">Perhitungan laba bersih real-time berdasarkan integrasi modul kasir dan pengadaan.</p>
+</div>
+
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto overflow-hidden">
+    <div class="bg-slate-900 p-6 text-white text-center">
+        <h2 class="text-lg font-bold tracking-wider">LAPORAN LABA RUGI</h2>
+        <p class="text-xs text-slate-400 mt-1">Periode Berjalan (Berdasarkan Data MySQL)</p>
+    </div>
+    
+    <div class="p-6 space-y-4">
+        <div class="flex justify-between border-b pb-2 text-sm">
+            <span class="text-slate-600 font-medium">Total Pendapatan Bersih (Omzet Penjualan)</span>
+            <span class="font-semibold text-slate-900">{{ fin.pendapatan }}</span>
+        </div>
+        <div class="flex justify-between border-b pb-2 text-sm text-red-600">
+            <span>Harga Pokok Penjualan (Total Belanja Modal Supplier)</span>
+            <span class="font-semibold">({{ fin.hpp }})</span>
+        </div>
+        
+        <div class="flex justify-between bg-slate-50 p-3 rounded-lg text-sm font-bold">
+            <span class="text-slate-700">LABA KOTOR OPERASIONAL</span>
+            <span class="text-slate-900">{{ fin.laba_kotor }}</span>
+        </div>
+        
+        <div class="flex justify-between border-b pb-2 text-sm text-slate-500 italic">
+            <span>Beban Operasional Toko (Listrik, Air, Penyusutan Rata-rata 2%)</span>
+            <span>({{ fin.biaya_operasional }})</span>
+        </div>
+        
+        <div class="flex justify-between p-4 rounded-xl {% if fin.status_untung %} bg-green-50 text-green-700 border border-green-200 {% else %} bg-red-50 text-red-700 border border-red-200 {% endif %} font-bold text-lg">
+            <span>ESTIMASI LABA BERSIH TOKO</span>
+            <span>{{ fin.laba_bersih }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

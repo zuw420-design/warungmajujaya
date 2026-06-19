@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900">Dashboard Utama</h1>
+    <p class="text-sm text-slate-500">Ringkasan performa dan kondisi finansial Warung Maju Jaya saat ini.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Penjualan Hari Ini</span>
+        <div class="text-3xl font-bold text-slate-900 mt-1">{{ summary.total_penjualan }}</div>
+        <span class="text-xs font-medium text-green-600 mt-2 inline-block">↗️ {{ summary.tren_penjualan }}</span>
+    </div>
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Laba Bersih Bulan Ini</span>
+        <div class="text-3xl font-bold text-slate-900 mt-1">{{ summary.laba_bersih }}</div>
+        <span class="text-xs font-medium text-green-600 mt-2 inline-block">↗️ {{ summary.tren_laba }}</span>
+    </div>
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm {% if summary.jumlah_kritis > 0 %} border-red-200 bg-red-50/50 {% endif %}">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Peringatan Stok Kritis</span>
+        <div class="text-3xl font-bold {% if summary.jumlah_kritis > 0 %} text-red-600 {% else %} text-slate-900 {% endif %} mt-1">{{ summary.jumlah_kritis }} Item</div>
+        <ul class="text-xs text-slate-500 mt-2 space-y-1">
+            {% for detail in summary.detail_kritis %}
+                <li class="text-red-600 font-medium">⚠️ {{ detail }}</li>
+            {% endfor %}
+            {% if not summary.detail_kritis %}
+                <li class="text-green-600 font-medium">✅ Semua stok aman</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Grafik Tren Penjualan Usaha</h3>
+                <p class="text-xs text-slate-500">Visualisasi performa pendapatan berdasarkan urutan nomor faktur kasir terbit.</p>
+            </div>
+            <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md">Real-Time (MySQL)</span>
+        </div>
+        <div class="w-full relative h-64">
+            <canvas id="trenJualChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+    <h3 class="text-md font-bold text-slate-900 mb-2">Selamat Datang di Sistem Informasi Keuangan</h3>
+    <p class="text-sm text-slate-600 leading-relaxed">
+        Sistem ini dirancang untuk menggantikan pencatatan manual buku besar. Evaluasi metrik keuangan usaha dan visualisasi grafik di atas bergerak secara otomatis mengikuti penambahan transaksi baru pada database sistem informasi.
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('trenJualChart').getContext('2d');
+    
+    // Trik membungkus dengan string json agar linter VS Code tidak memunculkan tanda error merah
+    const rawLabels = '{{ labels_grafik | tojson }}';
+    const rawNilai = '{{ nilai_grafik | tojson }}';
+    
+    // Konversi string kembali menjadi array asli di JavaScript
+    const labelsData = JSON.parse(rawLabels);
+    const nilaiData = JSON.parse(rawNilai);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labelsData.length > 0 ? labelsData : ['Belum Ada Data'],
+            datasets: [{
+                label: 'Nominal Penjualan (Rp)',
+                data: nilaiData.length > 0 ? nilaiData : [0],
+                borderColor: 'rgb(37, 99, 235)',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: 'rgb(37, 99, 235)',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(241, 245, 249, 1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        },
+                        font: { size: 11 }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
